@@ -5,7 +5,8 @@ main = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Дал�
 info = InlineKeyboardMarkup(
     inline_keyboard=[[InlineKeyboardButton(text="Получить перечень документов", callback_data='docs')]])
 
-docs = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Помощь со справками", callback_data='help')]])
+docs = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Помощь со справками", callback_data='command_help')],
+                                             [InlineKeyboardButton(text="Дальше",callback_data='command_next')]])
 
 help = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Инструкция по получению справки о несудимости", callback_data='instruction_one')],

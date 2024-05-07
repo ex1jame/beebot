@@ -1,13 +1,12 @@
-import asyncio
+from aiogram import Router, F
 
-from aiogram import Router, F, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, CallbackQuery, InputFile
+from aiogram.types import Message, CallbackQuery
 
 import app.keyboards as kb
 from app.utils.states import states_texts, ConfirmationState, add_states_texts
+
 
 router = Router()
 
@@ -15,6 +14,7 @@ router = Router()
 @router.message(F.photo)
 async def get_photo(message: Message, state: FSMContext):
     await message.answer(f"id{message.photo[-1].file_id}")
+
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
@@ -51,10 +51,24 @@ async def get_docs(callback: CallbackQuery):
                                   reply_markup=kb.docs)
 
 
-@router.callback_query(F.data == 'help')
+@router.callback_query(F.data == 'command_help')
 async def get_help(callback: CallbackQuery):
     await callback.answer()
     await callback.message.reply("С чем именно мне вам помочь?", reply_markup=kb.help)
+
+
+@router.callback_query(F.data == 'command_next')
+async def next_step(callback: CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        await callback.answer()
+        await state.set_state(1)  # Установка начального состояния 1
+        await callback.message.answer(states_texts[1])
+        await callback.message.answer(add_states_texts[1], reply_markup=kb.step_one)
+    else:
+        current_state = int(current_state)  # Преобразование текущего состояния в число
+        next_state = str(current_state + 1)
+        await state.set_state(next_state)  # Установка следующего состоянияdfsdf
 
 
 @router.callback_query(F.data == 'instruction_one')
@@ -87,27 +101,32 @@ async def next_step(message: Message, state: FSMContext):
         await state.set_state(1)  # Установка начального состояния 1
         await message.answer(states_texts[1])
         await message.answer(add_states_texts[1])
-
     else:
         current_state = int(current_state)  # Преобразование текущего состояния в число
         next_state = current_state + 1
         await state.set_state(next_state)  # Установка следующего состояния
-
         if next_state == 2:
             await message.answer(states_texts[next_state], reply_markup=kb.yes_or_no)
-
+            # await bot.delete_message(message.chat.id, message.message_id)
         elif next_state == 3:
             await message.answer(states_texts[3])
             await message.answer(add_states_texts[2])
         elif next_state == 4:
             # Отправляем фотографию и текст
             await message.answer(states_texts[4])
-
-            await message.answer_photo(photo='AgACAgIAAxkBAAICtGYvuip5z8PgMJHOQamly42gVGPrAAII2zEbRCyASQKbWDGvFjGTAQADAgADeAADNAQ',
-                                       caption=add_states_texts[3])
+            await message.answer_photo(
+                photo='AgACAgIAAxkBAAICtGYvuip5z8PgMJHOQamly42gVGPrAAII2zEbRCyASQKbWDGvFjGTAQADAgADeAADNAQ',
+                caption=add_states_texts[3])
         elif next_state == 5:
             await message.answer(states_texts[5])
             await message.answer(add_states_texts[5])
+        elif next_state == 6:
+            await message.answer(states_texts[6])
+            await message.answer(add_states_texts[6])
+        elif next_state == 7:
+            await message.answer(states_texts[7])
+            await message.answer(add_states_texts[7])
+            await message.answer(add_states_texts[4])
 
         elif next_state in states_texts:
             await message.answer(states_texts[next_state])
@@ -125,4 +144,3 @@ async def get_yes_docs(callback: CallbackQuery, state: FSMContext):
 async def get_yes_docs(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer("Поторопись,чтобы мы успели оформить тебя")
-
