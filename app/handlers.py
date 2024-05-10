@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Router, F
 
 from aiogram.filters import CommandStart
@@ -5,8 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 import app.keyboards as kb
-from app.utils.states import states_texts, ConfirmationState, add_states_texts
-
+from app.utils.states import states_texts, ConfirmationState, add_states_texts, send_message_after_delay
 
 router = Router()
 
@@ -64,7 +65,11 @@ async def next_step(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         await state.set_state(1)  # Установка начального состояния 1
         await callback.message.answer(states_texts[1])
-        await callback.message.answer(add_states_texts[1], reply_markup=kb.step_one)
+        await callback.message.answer(add_states_texts[1])
+        scheduled_message = "Привет! Ты собрал все документы?"
+        # Запланировать отправку сообщения через 5 дней
+        delay_days = 5
+        await asyncio.create_task(send_message_after_delay(callback.from_user.id, scheduled_message, delay_days))
     else:
         current_state = int(current_state)  # Преобразование текущего состояния в число
         next_state = str(current_state + 1)
@@ -100,36 +105,31 @@ async def next_step(message: Message, state: FSMContext):
     if current_state is None:
         await state.set_state(1)  # Установка начального состояния 1
         await message.answer(states_texts[1])
-        await message.answer(add_states_texts[1])
+        await message.answer(add_states_texts[1], reply_markup=kb.delete_keybord)
+        scheduled_message = "Привет! Ты собрал все документы?"
+        # Запланировать отправку сообщения через 5 дней
+        delay_days = 5
+        await asyncio.create_task(send_message_after_delay(message.chat.id, scheduled_message, delay_days))
+
     else:
         current_state = int(current_state)  # Преобразование текущего состояния в число
         next_state = current_state + 1
         await state.set_state(next_state)  # Установка следующего состояния
+        # await bot.delete_message(message.chat.id, message.message_id)
         if next_state == 2:
-            await message.answer(states_texts[next_state], reply_markup=kb.yes_or_no)
-            # await bot.delete_message(message.chat.id, message.message_id)
-        elif next_state == 3:
-            await message.answer(states_texts[3])
+            await message.answer(states_texts[2])
             await message.answer(add_states_texts[2])
-        elif next_state == 4:
+        elif next_state == 3:
             # Отправляем фотографию и текст
-            await message.answer(states_texts[4])
+            await message.answer(states_texts[3])
             await message.answer_photo(
                 photo='AgACAgIAAxkBAAICtGYvuip5z8PgMJHOQamly42gVGPrAAII2zEbRCyASQKbWDGvFjGTAQADAgADeAADNAQ',
                 caption=add_states_texts[3])
-        elif next_state == 5:
-            await message.answer(states_texts[5])
-            await message.answer(add_states_texts[5])
-        elif next_state == 6:
-            await message.answer(states_texts[6])
-            await message.answer(add_states_texts[6])
-        elif next_state == 7:
-            await message.answer(states_texts[7])
-            await message.answer(add_states_texts[7])
             await message.answer(add_states_texts[4])
-
-        elif next_state in states_texts:
-            await message.answer(states_texts[next_state])
+            # функцию
+        elif next_state == 4:
+            await message.answer(states_texts[4], reply_markup=kb.menu_keyboard)
+            await message.answer(add_states_texts[5])
         else:
             await message.answer("Больше нет текстов для отображения.")
 
@@ -137,10 +137,30 @@ async def next_step(message: Message, state: FSMContext):
 @router.callback_query(F.data == 'yes_docs')
 async def get_yes_docs(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer("Отлично!")
+    await callback.message.answer("Отлично!", reply_markup=kb.step_one)
 
 
 @router.callback_query(F.data == 'no_docs')
 async def get_yes_docs(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer("Поторопись,чтобы мы успели оформить тебя")
+    scheduled_message = "Привет! Ты собрал все документы?"
+    # Запланировать отправку сообщения через 5 дней
+    delay_days = 5
+    await asyncio.create_task(send_message_after_delay(callback.from_user.id, scheduled_message, delay_days))
+
+
+@router.message(F.text == 'Ивенты')
+async def get_events(message: Message, state: FSMContext):
+    await message.answer("Лучше один раз увидеть, чем сто раз "
+                         "услышать. Поэтому посмотри какие ивенты"
+                         "проходят в нашей Компании и почему мы так"
+                         "любим нашу корпоративную культуру."
+                         "Надеюсь ты проникнешься тем, что нас"
+                         "объединяет и делает сильной командой.",reply_markup=kb.ivents)
+
+
+@router.callback_query(F.data == "family_day")
+async def get_family_day(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.answer(add_states_texts[6])
