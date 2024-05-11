@@ -1,6 +1,7 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, \
-    ReplyKeyboardRemove
+    ReplyKeyboardRemove, sticker
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
+
 
 main = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Далее", callback_data='info')]])
 
@@ -28,15 +29,25 @@ delete_keybord = ReplyKeyboardRemove()
 
 menu_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Ивенты"), KeyboardButton(text="Офисы")],
-        [KeyboardButton(text="Плюшки"), KeyboardButton(text="Увлечения")],
+        [KeyboardButton(text="Ивенты"), KeyboardButton(text="Офис")],
+        [ KeyboardButton(text="Увлечения")],
         [KeyboardButton(text="Библиотека"), KeyboardButton(text="Bbox")],
         [KeyboardButton(text="Этикет")],
     ],
     row_width=2,
-    input_field_placeholder="Приятной смерти"
+    resize_keyboard=True,
+
+    input_field_placeholder="Выберите пункт меню"
+
 )
 
-ivents = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Family Day", callback_data='family_day')],
-                                               [InlineKeyboardButton(text="День Влюбленных",callback_data='love_day')],
-                                               [InlineKeyboardButton(text="BeeStyle",callback_data='beestyle_day')]])
+ivents = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Family Day", callback_data='family_day'),
+                                                InlineKeyboardButton(text="День Влюбленных", callback_data='love_day')],
+                                               [InlineKeyboardButton(text="BeeStyle", callback_data='beestyle_day')]],
+                              row_width=2)
+
+offices = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Капсула", callback_data='capsule_sky'),
+                                                 InlineKeyboardButton(text="Локеры", callback_data='locker_sky')],
+                                                [InlineKeyboardButton(text="Sky Lab", callback_data='sky_lab'),
+                                                 InlineKeyboardButton(text="Зоны отдыха", callback_data='relax_sky')]],
+                               row_width=2)

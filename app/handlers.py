@@ -4,12 +4,22 @@ from aiogram import Router, F
 
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, sticker , sticker_set
+
 
 import app.keyboards as kb
-from app.utils.states import states_texts, ConfirmationState, add_states_texts, send_message_after_delay
+from app.utils.states import states_texts, ConfirmationState, add_states_texts, send_message_after_delay, \
+    send_message_after_delay2
 
 router = Router()
+
+
+
+@router.message(F.video)
+async def get_video_id(message: Message):
+    if message.video:
+        video_id = message.video.file_id
+        await message.reply(f"ID вашего видео: {video_id}")
 
 
 @router.message(F.photo)
@@ -20,9 +30,11 @@ async def get_photo(message: Message, state: FSMContext):
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     await message.answer("Дорогой коллега, поздравляю тебя с прохождением всех "
-                         "этапов собеседования! Сегодня начинается твой путь в компании,"
+                         "этапов собеседования!"
+                         " Сегодня начинается твой путь в компании,"
                          " а я  – твой помощник, меня зовут BeeBot  и  моя задача помочь "
-                         "тебе адаптироваться в компании.", reply_markup=kb.main)
+                         "тебе адаптироваться в компании",
+                         reply_markup=kb.main)
 
 
 @router.callback_query(F.data == 'info')
@@ -32,7 +44,7 @@ async def get_info(callback: CallbackQuery):
                                      "1. Получить перечень документов;\n"
                                      "2. Собрать пакет документов;\n"
                                      "3. Знать дату выхода на работу и место работы;\n"
-                                     "4. Написать своему HR о готовности документов и предоставить их.",
+                                     "4. Написать своему HR о готовности документов и предоставить их." + sticker_set(),
                                      reply_markup=kb.info)
 
 
@@ -125,11 +137,15 @@ async def next_step(message: Message, state: FSMContext):
             await message.answer_photo(
                 photo='AgACAgIAAxkBAAICtGYvuip5z8PgMJHOQamly42gVGPrAAII2zEbRCyASQKbWDGvFjGTAQADAgADeAADNAQ',
                 caption=add_states_texts[3])
-            await message.answer(add_states_texts[4])
-            # функцию
-        elif next_state == 4:
-            await message.answer(states_texts[4], reply_markup=kb.menu_keyboard)
-            await message.answer(add_states_texts[5])
+            await message.answer_video(video="BAACAgIAAxkBAAIHW2Y-HCU86x8dpGX_0jo64H_c8KrKAAIxSAACuYjxSUG0u3auXQcgNQQ")
+            await message.answer_video(video="BAACAgIAAxkBAAIHXWY-HJgAAVNP3RUkw9UMBvAT-bnSHgACOkgAArmI8Umh63yvI4rvBzUE")
+            await message.answer(add_states_texts[4], reply_markup=kb.delete_keybord)
+            scheduled_message = ("Привет! Как твои дела?\n"
+                                 "Твой Buddy на связи")
+
+            delay_days = 1
+            await asyncio.create_task(send_message_after_delay2(message.chat.id, scheduled_message, delay_days))
+            await message.answer(add_states_texts[5], reply_markup=kb.menu_keyboard)
         else:
             await message.answer("Больше нет текстов для отображения.")
 
@@ -157,10 +173,147 @@ async def get_events(message: Message, state: FSMContext):
                          "проходят в нашей Компании и почему мы так"
                          "любим нашу корпоративную культуру."
                          "Надеюсь ты проникнешься тем, что нас"
-                         "объединяет и делает сильной командой.",reply_markup=kb.ivents)
+                         "объединяет и делает сильной командой.", reply_markup=kb.ivents)
 
 
 @router.callback_query(F.data == "family_day")
 async def get_family_day(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer(add_states_texts[6])
+
+
+@router.callback_query(F.data == "love_day")
+async def get_love_day(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.answer(add_states_texts[7])
+
+
+@router.callback_query(F.data == "beestyle_day")
+async def get_beestyle_day(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.answer("Хочу подробнее рассказать о нашей традиции Beestyle:\n"
+                                  "Beestyle - это флешмоб, когда мы приходим на работу в тематической одежде.\n"
+                                  "У нас в компании уже прошли:\n"
+                                  "BeeStyle - ХЭЛЛОУИН-ДЭЙ\n"
+                                  "BeeStyle - ДЕНЬ ЦВЕТНЫХ НОСКОВ\n"
+                                  "BeeStyle - ДЕНЬ ЦВЕТНЫХ РУБАШЕК\n"
+                                  "Beestyle ДЕНЬ ЧЕРНО-ЖЕЛТЫХ BEELINE НОСКОВ!\n"
+                                  "Обязательно участвуй с командой в Beestyle флешмобе!\n")
+    photo_ids = [
+        "AgACAgIAAxkBAAIJQmY-bUdh4R9dRKpgzV_lrKGa21REAAK42zEbuYjxSWooKlQjoEVaAQADAgADeAADNQQ",
+        "AgACAgIAAxkBAAIJRGY-bWhHigNt3vnTjkaLhJkUaul4AAK62zEbuYjxSdBq5qdshtYzAQADAgADeQADNQQ",
+
+
+    ]
+    media = [InputMediaPhoto(media=photo_id) for photo_id in photo_ids]
+    await callback.message.answer_media_group(media)
+
+
+@router.message(F.text == "Офис")
+async def get_offices(message: Message):
+    await message.answer_photo(
+        photo="AgACAgIAAxkBAAIHrWY-IjW15vvSvObp6QTEbFwvAAGtaQACHtoxG7mI8UmvQHctunWX_QEAAwIAA3kAAzUE",
+        caption=add_states_texts[8], reply_markup=kb.offices)
+
+
+@router.callback_query(F.data == "capsule_sky")
+async def get_capsule_sky(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.answer_photo(
+        photo="AgACAgIAAxkBAAIIBGY-QR3yy232RD4tSmMy_s6XYGWSAAKn2jEbuYjxSRJMNNAQio8MAQADAgADeQADNQQ",
+        caption=add_states_texts[9]
+    )
+
+
+@router.callback_query(F.data == "locker_sky")
+async def get_capsule_sky(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.answer_photo(
+        photo="AgACAgIAAxkBAAIIBmY-Qbi_t_c2lZQ99l0tvlUEbSM7AAKo2jEbuYjxSWQ6OPrLmS-UAQADAgADeQADNQQ",
+        caption=add_states_texts[10]
+    )
+
+
+@router.callback_query(F.data == "sky_lab")
+async def get_capsule_sky(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.answer_photo(
+        photo="AgACAgIAAxkBAAIICGY-QhLCBI6CZu701JJZHsGqRWVSAAKs2jEbuYjxSZyGzsQBqWt3AQADAgADeQADNQQ",
+        caption=add_states_texts[11]
+    )
+
+
+@router.callback_query(F.data == "relax_sky")
+async def get_relax_sky(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.answer(
+        "Конечно же, важно и то, чтобы"
+        "сотрудники могли отвлекаться от работы."
+        "Именно поэтому у нас в SKY X есть кухни,"
+        "зоны отдыха, террасы и даже своя"
+        "кофейня, где ты всегда можешь купить"
+        "свежий кофе или чай."
+    )
+    photo_ids = [
+        "AgACAgIAAxkBAAIIa2Y-SuMs2kCKKaucTUG0_afEHqlgAALY2jEbuYjxSXrnn9LaxlJBAQADAgADeQADNQQ",
+        "AgACAgIAAxkBAAIIy2Y-ZH6Rpm0mjKfYrJfBrROl7AHsAAJz2zEbuYjxSeKVuZgvdWPQAQADAgADeQADNQQ",
+        "AgACAgIAAxkBAAIIzWY-ZJJ3ahbvSDx23BtuNO8wY4NaAAJ02zEbuYjxSXy1S1tbyemJAQADAgADeQADNQQ",
+        "AgACAgIAAxkBAAIIz2Y-ZKY8jzN593vvpRg0N48ZMaPjAAJ12zEbuYjxSeyu0IohtUckAQADAgADeQADNQQ",
+        "AgACAgIAAxkBAAII0WY-ZLuaStPphNxudzoISZgCK9pyAAJ32zEbuYjxSdisRUBCLpKEAQADAgADeQADNQQ"
+
+    ]
+    media = [InputMediaPhoto(media=photo_id) for photo_id in photo_ids]
+    await callback.message.answer_media_group(media)
+
+
+#
+# # Отправляем текстовое сообщение офисов после группы фотографий
+# await message.answer(offices_text)
+
+
+@router.message(F.text == "Увлечения")
+async def get_hobbies(message: Message):
+    await message.answer_photo(
+        photo="AgACAgIAAxkBAAIJKWY-aFR1T17Q3jfC0uRqprXcrcbWAAKQ2zEbuYjxSffeHlwhNW0RAQADAgADeQADNQQ",
+        caption="Мы стремимся к тому, чтобы у наших сотрудников был баланс\n"
+                "между работой и личными увлечениями. Мы верим, что такой\n"
+                "сотрудник заинтересован в том, чтобы его работа приносила\n"
+                "лучший результат Компании. Именно поэтому мы развиваем\n"
+                "систему клубов, которые предоставляют коллегам простор для\n"
+                "развития в самых разных направлениях:\n"
+                "•Шахматы\n"
+                "•Стретчинг\n"
+                "•Настольный теннис\n"
+                "•Футбол\n"
+                "Уверен, что ты найдешь себе занятие по душе."
+    )
+
+
+@router.message(F.text == "Библиотека")
+async def get_library(message: Message):
+    await message.answer("Обучение и развитие сотрудников – один из важнейших элементов"
+                         "корпоративной культуры. Мы предоставляем доступ к лучшим"
+                         "площадкам для онлайн обучения:\n"
+                         "Корпоративной библиотеке Alpina, в которой тебе будут доступны"
+                         "1000 книг, самого разного направления.\n"
+                         "А также к платформе Courserа, где ты сможешь пройти курсы от"
+                         "топовых университетов и компаний\n"
+                         "У нас еще есть живая библиотека на 2-м этаже. Ты можешь брать"
+                         "книги и прокачивать свои знания.\n"
+                         "Мы с удовольствием тебе это все покажем, когда увидимся в"
+                         "нашем офисе. До скорой встречи!\n")
+    await message.answer_photo(
+        photo="AgACAgIAAxkBAAIJLmY-a-LIBDWSr2lhsP-u_RZPtQ7zAAKP2zEbuYjxSXbhA6rUgdP6AQADAgADeQADNQQ"
+    )
+
+
+@router.message(F.text == "Bbox")
+async def get_bbox(message: Message):
+    await message.answer("Также Компания запустила систему не материальной"
+                         "мотивации Benefit box или же BBox. Это альтернативное"
+                         "предложение для сотрудников, которым не подходят условия"
+                         "добровольного медицинского страхования (ДМС)."
+                         "В BBox вы сами выбираете услугу, которая может быть"
+                         "предложена со льготными условиями:"
+                         "Абонемент в зал, оплата за проезд в общественном транспорте"
+                         "или же сервисы саморазвития.")

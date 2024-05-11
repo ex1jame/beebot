@@ -6,6 +6,8 @@ from aiogram.types import message
 import app.keyboards as kb
 
 bot = Bot(token='7166991834:AAFQOCQ5P9EvWV2tR80QI4AN40hRnwLwWl0')
+
+
 class ConfirmationState(StatesGroup):
     awaiting_confirmation = State()
 
@@ -27,7 +29,6 @@ states_texts = {
     # Добавьте нужные тексты для остальных состояний здесь
 }
 
-
 add_states_texts = {
     1: "Совсем скоро я начну тебя погружать в корпоративную культуру.",
     2: "Вся наша миссия отражена в нашей Компании: «Делая связь частью жизни,"
@@ -39,12 +40,33 @@ add_states_texts = {
     4: "Увидимся завтра! Не отключай меня",
     5: "Сегодня я погружу тебя в нашу корпоративную культуру. "
        "Мы ее сильно придерживаемся и очень любим.",
-    6: "https://youtu.be/IdvwShBW63g?si=0zkDWpAWoV7bdJ__",
-    7: "https://youtu.be/7WkPEiYVgwg?si=Wd_5Oz-HnWgdxGs0",
+    6: "https://youtu.be/IdvwShBW63g?si=0zkDWpAWoV7bdJ__",  # family day
+    7: "https://youtu.be/7WkPEiYVgwg?si=Wd_5Oz-HnWgdxGs0",  # call center
+    8: "        Наш головной офис – SKY X.\n"
+       "Он находится в бизнес-центре «ORDA INVEST»\n"
+       "Ибраимова 115/1, а вход со стороны Гоголя, 113.\n",
+    9: "Наш офис – это просторное open space"
+       "пространство, в котором есть все"
+       "возможности для комфортной работы. К"
+       "примеру, если тебе нужно созвониться с"
+       "коллегой из другой страны, то для этого"
+       "есть небольшая capsule.",
+    10: "Наши локеры",
+    11: "А если ты хочешь рассказать десяткам"
+        "сотрудников о своем классном проекте,"
+        "то добро пожаловать в наш SKY Lab –"
+        "большой зал для конференций."
+
 }
 
 
 async def send_message_after_delay(chat_id, text, delay_days):
     # await asyncio.sleep(delay_days * 24 * 60 * 60)  # Конвертация дней в секунды
     await asyncio.sleep(delay_days)
-    await bot.send_message(chat_id,text,reply_markup=kb.yes_or_no)
+    await bot.send_message(chat_id, text, reply_markup=kb.yes_or_no)
+
+
+async def send_message_after_delay2(chat_id, text, delay_days):
+    # await asyncio.sleep(delay_days * 24 * 60 * 60)  # Конвертация дней в секунды
+    await asyncio.sleep(delay_days)
+    await bot.send_message(chat_id, text)
